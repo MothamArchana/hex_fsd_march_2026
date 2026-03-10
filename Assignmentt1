@@ -1,0 +1,70 @@
+
+USE product_platform;
+DROP TABLE IF EXISTS sales;
+
+CREATE TABLE sales (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    product_name VARCHAR(50),
+    category VARCHAR(50),
+    quantity INT,
+    price DECIMAL(10,2),
+    date_of_sale DATE
+);
+INSERT INTO sales(product_name, category, quantity, price, date_of_sale)
+VALUES
+('Laptop','Electronics',2,65000,'2026-03-01'),
+('Phone','Electronics',3,25000,'2026-03-02'),
+('Shoes','Fashion',5,2000,'2026-03-03'),
+('Tshirt','Fashion',4,800,'2026-03-04'),
+('Mixer','HomeAppliance',1,3500,'2026-03-05');
+SELECT * FROM sales;
+DROP PROCEDURE IF EXISTS get_sales_by_category;
+DELIMITER %%
+
+CREATE PROCEDURE get_sales_by_category(IN p_category VARCHAR(50))
+BEGIN
+    IF p_category IS NULL OR p_category = '' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Category cannot be empty';
+    END IF;
+
+    SELECT *
+    FROM sales
+    WHERE category = p_category;
+END;
+
+%%
+DELIMITER ;
+CALL get_sales_by_category('Electronics');
+CALL get_sales_by_category(' ');
+DELIMITER %%
+DROP Procedure IF  EXISTS count_sales_by_category;
+
+CREATE PROCEDURE count_sales_by_category(
+    IN p_category VARCHAR(50),
+    OUT total_sales INT
+)
+BEGIN
+    IF p_category IS NULL OR p_category = '' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Category cannot be empty';
+    END IF;
+
+    SELECT COUNT(*)
+    INTO total_sales
+    FROM sales
+    WHERE category = p_category;
+END;
+
+%%
+DELIMITER ;
+DROP VIEW IF EXISTS product_sales_summary;
+CREATE VIEW product_sales_summary AS
+SELECT
+    product_name,
+    category,
+    quantity,
+    price
+FROM sales;
+SELECT * FROM product_sales_summary;
+
